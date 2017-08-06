@@ -25,7 +25,7 @@ minimum_price = {}
 @route('/callback', method='POST')
 def callback():
     signature = request.get_header('X-Line-Signature')
-    body = request.body
+    body = request.body.read()
 
     try:
         handler.handle(body, signature)
