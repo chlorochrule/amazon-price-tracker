@@ -9,7 +9,6 @@ AWS_ACCESS_KEY = os.environ['AWS_ACCESS_KEY']
 AWS_SECRET_KEY = os.environ['AWS_SECRET_KEY']
 AMAZON_ASSOCIATE_TAG = os.environ['AMAZON_ASSOCIATE_TAG']
 
-
 def get_amazon_api():
     return api.Amazon(
         AWS_ACCESS_KEY,
@@ -31,6 +30,8 @@ def scrape_xml(res_xml):
     soup = BeautifulSoup(res_xml, 'lxml')
     items = soup.findAll('item')
     res_dicts = []
+    if len(items) == 0:
+        res_dicts = None
     for item in items:
         try:
             res_dicts.append(
@@ -50,7 +51,6 @@ def scrape_xml(res_xml):
             res_dicts[-1]['lowestusedprice'] = item.find('offersummary').find('lowestusedprice').find('amount').text
         except AttributeError as e:
             res_dicts[-1]['lowestusedprice'] = None
-        # TODO: res_dicts[-1]['last_update_time'] = datetime.now().tostring()
     return res_dicts
 
 def item_search(amazon_api, keywords, ItemPage=1, ResponseGroup='Medium'):
