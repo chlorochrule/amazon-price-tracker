@@ -33,6 +33,8 @@ conn = pg.connect(
     port=url.port
 )
 
+AMAZON_ASSOCIATE_TAG = os.environ['AMAZON_ASSOCIATE_TAG']
+
 CHANNEL_ACCESS_TOKEN = os.environ['CHANNEL_ACCESS_TOKEN']
 line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
 
@@ -46,8 +48,8 @@ def lookup(amazon_api, asins, res):
 
 def notify(user_id, product):
     text = '''商品「{}」の価格追跡条件が満たされました。
-    https://amazon.co.jp/dp/{}
-    '''.format(product['title'][:min(len(product['title']), 60)], product['asin'])
+    https://www.amazon.co.jp/dp/{}?tag={}&linkCode=as1&creative=6339
+    '''.format(product['title'][:min(len(product['title']), 60)], product['asin'], AMAZON_ASSOCIATE_TAG)
     text_message = TextSendMessage(text=text)
     confirm_message = TemplateSendMessage(
         alt_text='Confirm to continue tracking',

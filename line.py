@@ -210,6 +210,8 @@ class MessageHandler(BaseHandler):
             return self._cancel_process
         elif text == '>追跡中商品一覧':
             return self._display_trackings_handler
+        elif text == '>ヘルプ':
+            return self._help_handler
         # elif text == '>追跡中の商品を検索':
         #     return self._start_searching_trackings_handler
 
@@ -247,6 +249,35 @@ class MessageHandler(BaseHandler):
         if not is_empty:
             self._write_products(user_id, product_dicts=self._get_products(user_id, page=2, query=query),
                 displayed_products=product_dicts, page=3, query=query)
+
+    def _help_handler(self, event):
+        text = '''これはAmazon.co.jpに登録されている商品の価格を追跡して指定された価格以下になったら通知してお知らせするLINEBOTです。
+
+        ***使い方***
+        ・追跡する商品を指定するには3通りの方法があります。
+        ①このボットに検索するキーワードを送る
+        ②AmazonのURLをこのボットに送る
+        ③ASINをこのボットに送る
+
+        ・追跡商品のコンディション
+        ①新品のみを追跡
+        ②新品と中古の両方を追跡
+
+        ・価格入力
+        ※アラビア数字半角で入力してください
+        良い例）4000、4000円
+        悪い例）4千円、４０００
+
+        ・よくわからないとき
+        「処理を中断」ボタンを押してください
+        ******
+
+        このボットはベータ版です。バグや要望、質問はTwitter @chlorochrule までお願いします。
+        よいAmazonライフを！
+        ∈(´﹏﹏﹏｀)∋
+        '''
+        message = TextSendMessage(text=text)
+        self._send_message(event, message)
 
     def _start_searching_trackings_handler(self, event):
         user_id = event.source.sender_id
