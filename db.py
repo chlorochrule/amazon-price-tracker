@@ -33,6 +33,16 @@ def insert_table(table, **data):
             product = item_lookup(amazon_api, asins=[data['asin']])[0]
             insert_table('products', **product)
 
+def insert_table2(table, **data):
+    col_num = len(data.keys())
+    if col_num == 0:
+        return
+    columns = reduce(lambda c1, c2: c1 + ', ' + c2, data.keys())
+    form = '%s' + ', %s' * (col_num-1)
+    with conn.cursor() as cur:
+        cur.execute('insert into {table} ({columns}) values ({form});'.format(table=table, columns=columns, form=form), list(data.values()))
+        conn.commit()
+
 def update_table(table, pkeys={}, **data):
     col_num = len(data.keys())
     if col_num == 0:

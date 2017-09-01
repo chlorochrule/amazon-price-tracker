@@ -13,7 +13,7 @@ from linebot.models import (
     PostbackTemplateAction
 )
 
-from db import update_table
+from db import update_table, insert_table2, count_table
 from amazon import get_amazon_api, item_lookup
 
 amazon_api = get_amazon_api()
@@ -46,10 +46,10 @@ def lookup(amazon_api, asins, res):
     res['lookup'] = item_lookup(amazon_api, asins)
     event.set(); event.clear()
 
-def notify(user_id, product):
+def notify(user_id, product, tracking_price, notified_price):
     text = '''商品「{}」の価格追跡条件が満たされました。
-    https://www.amazon.co.jp/dp/{}?tag={}&linkCode=as1&creative=6339
-    '''.format(product['title'][:min(len(product['title']), 60)], product['asin'], AMAZON_ASSOCIATE_TAG)
+https://www.amazon.co.jp/dp/{}?tag={}&linkCode=as1&creative=6339
+'''.format(product['title'][:min(len(product['title']), 60)], product['asin'], AMAZON_ASSOCIATE_TAG)
     text_message = TextSendMessage(text=text)
     confirm_message = TemplateSendMessage(
         alt_text='Confirm to continue tracking',
@@ -73,6 +73,14 @@ def notify(user_id, product):
         pkeys={'user_id': user_id, 'asin': product['asin']},
         notified=True
     )
+    if count_table(table='notified', user_id=user_id, asin=product['asin']) == 0:
+        insert_table2(
+            table='notified',
+            user_id=user_id,
+            asin=product['asin'],
+            tracking_price=tracking_price,
+            notified_price=notified_price
+        )
 
 def track():
     with conn.cursor(name='ssc') as ssc:
@@ -95,8 +103,9 @@ def track():
                         lowestnewprice = int(lowestnewprice) if lowestnewprice is not None else 999999999
                         lowestusedprice = int(lowestusedprice) if lowestusedprice is not None else 999999999
                         minimum_price = lowestnewprice if condition == 'new' else min(lowestnewprice, lowestusedprice)
+                        minimum_price = 20
                         if minimum_price < tracking_price and not notified:
-                            notify(user_id, product)
+                            notify(user_id, product, tracking_price, minimum_price)
             row = res['fetch']
 
 if __name__ == '__main__':
